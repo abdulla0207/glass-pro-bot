@@ -8,7 +8,7 @@ import uz.glasspro.enums.OrderStatusEnum;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "order")
+@Table(name = "orders")
 @Getter
 @Setter
 public class OrderEntity {
@@ -41,6 +41,6 @@ public class OrderEntity {
     private Integer userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "profile_id", insertable = false, updatable = false)
     private UserEntity userEntity;
 }
