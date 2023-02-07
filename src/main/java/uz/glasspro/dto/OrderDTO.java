@@ -15,6 +15,6 @@ public class OrderDTO {
     private Integer amount;
     private Double price;
     private OrderStatusEnum orderStatusEnum;
-    private Integer userId;
+    private Long userId;
     private UserDTO userDTO;
 }

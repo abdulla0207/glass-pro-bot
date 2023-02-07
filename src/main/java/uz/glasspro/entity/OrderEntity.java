@@ -38,7 +38,7 @@ public class OrderEntity {
     private OrderStatusEnum orderStatusEnum;
 
     @Column(name = "user_id")
-    private Integer userId;
+    private Long userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "profile_id", insertable = false, updatable = false)
