@@ -3,6 +3,7 @@ package uz.glasspro;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
@@ -42,34 +43,54 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        if(update.hasMessage() && update.getMessage().hasText()){
+        if(update.hasMessage()){
             String messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
             SendMessage message = new SendMessage();
             message.setChatId(chatId);
             message.enableHtml(true);
 
-            SendContact sendContact = new SendContact();
-            sendContact.setChatId(chatId);
-            switch (messageText){
-                case "/start":
-                    startCommandReceived(update.getMessage().getChat().getFirstName(), message);
-                    break;
-                default:
-                    message.setText("Cannot process it now");
-                    sendContent(message);
+            if(update.getMessage().hasText()){
+
+
+                SendContact sendContact = new SendContact();
+                sendContact.setChatId(chatId);
+                switch (messageText){
+                    case "/start":
+                        startCommandReceived(update.getMessage().getChat().getFirstName(), message);
+                        break;
+                    default:
+                        message.setText("Cannot process it now");
+                        sendContent(message);
+                }
             }
-        }else if(update.getMessage().hasContact()){
-            UserDTO currentUser = new UserDTO();
-            Contact contact = update.getMessage().getContact();
-            currentUser.setId(update.getMessage().getChat().getId());
-            currentUser.setFirstName(update.getMessage().getChat().getFirstName());
-            currentUser.setUserName(update.getMessage().getChat().getUserName());
-            currentUser.setLastName(update.getMessage().getChat().getLastName());
-            currentUser.setPhoneNumber(contact.getPhoneNumber());
-            userController.createUser(currentUser);
-            System.out.println(contact);
+            if(update.getMessage().hasContact()){
+                UserDTO currentUser = new UserDTO();
+                Contact contact = update.getMessage().getContact();
+                currentUser.setId(update.getMessage().getChat().getId());
+                currentUser.setFirstName(update.getMessage().getChat().getFirstName());
+                currentUser.setUserName(update.getMessage().getChat().getUserName());
+                currentUser.setLastName(update.getMessage().getChat().getLastName());
+                currentUser.setPhoneNumber(contact.getPhoneNumber());
+                ResponseEntity<?> user = userController.createUser(currentUser);
+                if(user != null){
+                    redirectToHomePage(message);
+                }else {
+                    message.setText("Не верный телефон номер. \n\n" +
+                            "Наш бот поддерживает только номера из Узбекистана в формате:\n" +
+                            "<b>(+9989x xxx xx xx)</b>");
+                    sendContent(message);
+                    message.setText("Пожалуйста, Перезапустите бот ещё раз и отправьте правильный тел. номер.");
+                    sendContent(message);
+                }
+            }
         }
+    }
+
+    private void redirectToHomePage(SendMessage message) {
+        message.setText("Выберите операцию:");
+        message.setReplyMarkup(ReplyKeyboardUtil.baseMenu());
+        sendContent(message);
     }
 
 
