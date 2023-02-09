@@ -7,6 +7,7 @@ import uz.glasspro.entity.UserEntity;
 import uz.glasspro.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -33,6 +34,21 @@ public class UserService {
         userEntity.setLastName(userDTO.getLastName());
         userEntity.setPhoneNumber(userDTO.getPhoneNumber());
         userEntity.setCreatedDate(LocalDateTime.now());
+        userEntity.setUserStatusEnum(UserStatusEnum.ACTIVE);
         return userEntity;
     }
+
+    public String removeUser(String phoneNum) {
+        Optional<UserEntity> userEntity = userRepository.getUserEntityByPhoneNumber(phoneNum);
+        if(userEntity.isEmpty()){
+            return "Аккаунт с таким номером не существует в базе данных\n" +
+                    "<b>Пожалуйста, повторите попытку</b>\n\n" +
+                    "Попробуйте написать номер в формате:" +
+                    "<b>+9989xxxxxxxx</b> или <b>9998xxxxxxxx</b>";
+        }
+
+        userRepository.removeUserEntityByPhoneNumber(phoneNum);
+        return "Пользователь с номером <b>"+phoneNum+"</b> был удален с базы данных";
+    }
+
 }

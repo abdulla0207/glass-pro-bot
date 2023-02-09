@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
+import uz.glasspro.service.UserStatusEnum;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -29,4 +31,11 @@ public class UserEntity {
 
     @Column(name = "created_date")
     private LocalDateTime createdDate;
+
+    @OneToMany(mappedBy="userEntity", cascade = CascadeType.REMOVE)
+    private List<OrderEntity> orderEntities;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "user_status")
+    private UserStatusEnum userStatusEnum;
 }

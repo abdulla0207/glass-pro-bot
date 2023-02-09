@@ -18,6 +18,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import uz.glasspro.controller.UserController;
 import uz.glasspro.dto.UserDTO;
 import uz.glasspro.util.ReplyKeyboardUtil;
+import uz.glasspro.util.ReplyKeyboardConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +60,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                     case "/start":
                         startCommandReceived(update.getMessage().getChat().getFirstName(), message);
                         break;
+                    case ReplyKeyboardConstants.DELETE_USER:
+                        removeUserPage(message, messageText);
+                        break;
                     default:
                         message.setText("Cannot process it now");
                         sendContent(message);
@@ -85,6 +89,14 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
         }
+    }
+
+    private void removeUserPage(SendMessage message, String text) {
+        message.setText("Отправьте номер человека которого вы хотите удалить.");
+        sendContent(message);
+
+        String res = userController.removeUser(text);
+        sendContent(res);
     }
 
     private void redirectToHomePage(SendMessage message) {
