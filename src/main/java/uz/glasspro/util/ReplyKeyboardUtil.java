@@ -20,15 +20,25 @@ public class ReplyKeyboardUtil {
         return replyKeyboardMarkup;
     }
 
+    public static ReplyKeyboardMarkup adminMenu(){
+        KeyboardButton banUser = new KeyboardButton(ReplyKeyboardConstants.BAN_USER);
+        KeyboardButton deleteUser = new KeyboardButton(ReplyKeyboardConstants.DELETE_USER);
+        KeyboardRow row1 = getRow(banUser, deleteUser);
+        List<KeyboardRow> rows = getRowList(row1);
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(rows);
+        replyKeyboardMarkup.setResizeKeyboard(true);
+        replyKeyboardMarkup.setOneTimeKeyboard(true);
+        return replyKeyboardMarkup;
+    }
+
     public static ReplyKeyboardMarkup baseMenu(){
         KeyboardButton aboutButton = new KeyboardButton(ReplyKeyboardConstants.ABOUT_US);
         KeyboardButton orderButton = new KeyboardButton(ReplyKeyboardConstants.ORDER);
         KeyboardButton settingButton = new KeyboardButton(ReplyKeyboardConstants.SETTINGS);
         KeyboardButton orderHistoryButton = new KeyboardButton(ReplyKeyboardConstants.ORDER_HISTORY);
-        KeyboardButton removeUser = new KeyboardButton(ReplyKeyboardConstants.DELETE_USER);
         KeyboardRow row1 = getRow(aboutButton, settingButton);
         KeyboardRow row2 = getRow(orderButton);
-        KeyboardRow row3 = getRow(orderHistoryButton, removeUser);
+        KeyboardRow row3 = getRow(orderHistoryButton);
         List<KeyboardRow> keyboardRows = getRowList(row1, row2, row3);
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(keyboardRows);
         replyKeyboardMarkup.setResizeKeyboard(true);

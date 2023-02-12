@@ -1,6 +1,7 @@
 package uz.glasspro.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,8 +17,10 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createUser(@RequestBody UserDTO userDTO){
+    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO){
         UserDTO response = userService.createUser(userDTO);
+        if(response == null)
+            return ResponseEntity.badRequest().build();
         return ResponseEntity.ok(response);
     }
 
@@ -29,4 +32,12 @@ public class UserController {
         return res;
     }
 
+    @GetMapping("/")
+    public ResponseEntity<UserDTO> getUserById(Long userId) {
+        UserDTO res = userService.getUserById(userId);
+        if(res == null){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(res);
+    }
 }

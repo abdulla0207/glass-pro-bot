@@ -2,13 +2,17 @@ package uz.glasspro;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendContact;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Contact;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -17,6 +21,7 @@ import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScope
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import uz.glasspro.controller.UserController;
 import uz.glasspro.dto.UserDTO;
+import uz.glasspro.enums.RoleEnum;
 import uz.glasspro.util.ReplyKeyboardUtil;
 import uz.glasspro.util.ReplyKeyboardConstants;
 
@@ -52,13 +57,12 @@ public class TelegramBot extends TelegramLongPollingBot {
             message.enableHtml(true);
 
             if(update.getMessage().hasText()){
-
-
                 SendContact sendContact = new SendContact();
                 sendContact.setChatId(chatId);
+                Chat chat = update.getMessage().getChat();
                 switch (messageText){
                     case "/start":
-                        startCommandReceived(update.getMessage().getChat().getFirstName(), message);
+                        startCommandReceived(chat.getFirstName(), chat.getId(), message);
                         break;
                     case ReplyKeyboardConstants.DELETE_USER:
                         removeUserPage(message, messageText);
@@ -76,8 +80,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                 currentUser.setUserName(update.getMessage().getChat().getUserName());
                 currentUser.setLastName(update.getMessage().getChat().getLastName());
                 currentUser.setPhoneNumber(contact.getPhoneNumber());
-                ResponseEntity<?> user = userController.createUser(currentUser);
-                if(user != null){
+                UserDTO userDTO = userController.createUser(currentUser).getBody();
+                if(userDTO != null){
                     redirectToHomePage(message);
                 }else {
                     message.setText("Не верный телефон номер. \n\n" +
@@ -89,6 +93,14 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
         }
+    }
+
+    private void adminPage(SendMessage message, String firstName) {
+        message.setText("Админ <b>"+firstName +"</b>");
+        sendContent(message);
+        message.setText("Выберите операцию которую вы хотите сделать:");
+        message.setReplyMarkup(ReplyKeyboardUtil.adminMenu());
+        sendContent(message);
     }
 
     private void removeUserPage(SendMessage message, String text) {
@@ -106,16 +118,19 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
 
-    private void startCommandReceived(String firstName, SendMessage message) {
+    private void startCommandReceived(String firstName, Long userId, SendMessage message) {
         String greeting = "Здраствуйте <b>"+firstName+"</b>\n"+
                 "Добро пожаловать в бот <b>Glass Pro</b>";
         message.setText(greeting);
         sendContent(message);
-        String contactRequest = "\uD83D\uDCF1 Отправьте свой номер телефона";
-        message.setText(contactRequest);
-        message.setReplyMarkup(ReplyKeyboardUtil.sendPhone());
-        sendContent(message);
-
+        if(userController.getUserById(userId).getStatusCode() == HttpStatus.NOT_FOUND) {
+            String contactRequest = "\uD83D\uDCF1 Отправьте свой номер телефона";
+            message.setText(contactRequest);
+            message.setReplyMarkup(ReplyKeyboardUtil.sendPhone());
+            sendContent(message);
+        }else{
+            redirectToHomePage(message);
+        }
     }
 
 

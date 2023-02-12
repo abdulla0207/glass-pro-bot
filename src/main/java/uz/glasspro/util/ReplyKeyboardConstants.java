@@ -8,4 +8,6 @@ public interface ReplyKeyboardConstants {
 
     String DELETE_USER = "❌ Удалить пользователя";
     String SEND_PHONE = "☎ Отправить свой номер телефона";
+
+    String BAN_USER = "🛑 Забанить пользователя";
 }

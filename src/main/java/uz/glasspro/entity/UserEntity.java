@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
+import uz.glasspro.enums.RoleEnum;
 import uz.glasspro.service.UserStatusEnum;
 
 import java.time.LocalDateTime;
@@ -38,4 +39,8 @@ public class UserEntity {
     @Enumerated(value = EnumType.STRING)
     @Column(name = "user_status")
     private UserStatusEnum userStatusEnum;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "user_role")
+    private RoleEnum roleEnum;
 }
