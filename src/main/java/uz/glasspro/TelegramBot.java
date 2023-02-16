@@ -19,7 +19,9 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import uz.glasspro.controller.OrderController;
 import uz.glasspro.controller.UserController;
+import uz.glasspro.dto.OrderDTO;
 import uz.glasspro.dto.UserDTO;
 import uz.glasspro.enums.RoleEnum;
 import uz.glasspro.util.ReplyKeyboardUtil;
@@ -37,6 +39,9 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Autowired
     private UserController userController;
+
+    @Autowired
+    private OrderController orderController;
     @Override
     public String getBotUsername() {
         return dotenv.get("BOT_USERNAME");
@@ -77,7 +82,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                         makeOrder(message, chatId);
                         break;
                     case ReplyKeyboardConstants.ORDER_HISTORY:
-                        orderHistory(message, chatId);
+                        orderHistory(message, chat.getId());
+                        break;
                     default:
                         message.setText("Cannot process it now");
                         sendContent(message);
@@ -106,9 +112,24 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private void orderHistory(SendMessage message, long chatId) {
+    private void orderHistory(SendMessage message, long userId) {
         message.setText("История заказов");
-        sendContent(message);
+        List<OrderDTO> orderDTOS = orderController.getUserOrderList(userId).getBody();
+        if(orderDTOS == null){
+            message.setText("Вы еще не делали никаких заказов");
+            sendContent(message);
+        }else{
+            StringBuilder orderList = new StringBuilder();
+            int counter = 1;
+            orderDTOS.forEach(orderDTO -> {
+                orderList.append(counter + ". " + orderDTO.getName() + ":\nКол-во" + orderDTO.getAmount() + "\nЦена " + orderDTO.getPrice()
+                + "\nДата заказа " + orderDTO.getCreatedDate());
+                orderList.append("\n");
+            });
+
+            message.setText(orderList.toString());
+            sendContent(message);
+        }
     }
 
     private void makeOrder(SendMessage message, long chatId) {

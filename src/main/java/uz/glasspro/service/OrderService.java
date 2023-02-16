@@ -38,6 +38,7 @@ public class OrderService {
         orderDTO.setName(order.getName());
         orderDTO.setId(order.getId());
         orderDTO.setUserId(order.getUserEntity().getId());
+        orderDTO.setCreatedDate(order.getCreatedDate());
         return orderDTO;
     }
 
@@ -60,5 +61,20 @@ public class OrderService {
         order.setName(orderDTO.getName());
         order.setHeight(orderDTO.getHeight());
         return order;
+    }
+
+    public List<OrderDTO> getUserOrderList(long userId) {
+        List<OrderEntity> orderEntities = orderRepository.getOrderById(userId);
+
+        if(orderEntities.isEmpty()){
+            return null;
+        }
+        List<OrderDTO> orderDTOS = new ArrayList<>();
+
+        for(OrderEntity order : orderEntities){
+            OrderDTO orderDTO = toDTO(order);
+            orderDTOS.add(orderDTO);
+        }
+        return orderDTOS;
     }
 }

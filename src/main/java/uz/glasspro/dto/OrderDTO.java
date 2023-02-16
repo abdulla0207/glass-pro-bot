@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import uz.glasspro.enums.OrderStatusEnum;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 public class OrderDTO {
@@ -14,6 +16,8 @@ public class OrderDTO {
     private Double width;
     private Integer amount;
     private Double price;
+
+    private LocalDateTime createdDate;
     private OrderStatusEnum orderStatusEnum;
     private Long userId;
     private UserDTO userDTO;
