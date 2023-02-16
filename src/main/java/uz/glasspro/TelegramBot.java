@@ -67,6 +67,17 @@ public class TelegramBot extends TelegramLongPollingBot {
                     case ReplyKeyboardConstants.DELETE_USER:
                         removeUserPage(message, messageText);
                         break;
+                    case ReplyKeyboardConstants.ABOUT_US:
+                        aboutUsPage(message, chatId);
+                        break;
+                    case ReplyKeyboardConstants.SETTINGS:
+                        settingsPage(message, chatId);
+                        break;
+                    case ReplyKeyboardConstants.ORDER:
+                        makeOrder(message, chatId);
+                        break;
+                    case ReplyKeyboardConstants.ORDER_HISTORY:
+                        orderHistory(message, chatId);
                     default:
                         message.setText("Cannot process it now");
                         sendContent(message);
@@ -93,6 +104,28 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
         }
+    }
+
+    private void orderHistory(SendMessage message, long chatId) {
+        message.setText("История заказов");
+        sendContent(message);
+    }
+
+    private void makeOrder(SendMessage message, long chatId) {
+        message.setText("Заказ");
+        sendContent(message);
+    }
+
+    private void settingsPage(SendMessage message, long chatId) {
+        message.setText("Настройки:");
+        sendContent(message);
+    }
+
+    private void aboutUsPage(SendMessage message, long chatId) {
+        message.setText("GlassPro была создана в 2015 году.....");
+        message.setReplyMarkup(ReplyKeyboardUtil.baseMenu());
+        sendContent(message);
+
     }
 
     private void adminPage(SendMessage message, String firstName) {
