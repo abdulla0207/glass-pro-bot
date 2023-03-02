@@ -17,7 +17,7 @@ public class UserService {
     private UserRepository userRepository;
 
     public UserDTO createUser(UserDTO userDTO) {
-        if(!userDTO.getPhoneNumber().matches("[+]?9989[0-9]{8}"))
+        if(!userDTO.getPhoneNumber().matches("[+]?998[0-9]{9}"))
             return null;
 
         UserEntity userEntity = getEntity(userDTO);

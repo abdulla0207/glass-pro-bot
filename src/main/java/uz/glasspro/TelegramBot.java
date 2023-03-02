@@ -19,17 +19,17 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import uz.glasspro.component.ComponentContainer;
 import uz.glasspro.controller.OrderController;
 import uz.glasspro.controller.UserController;
 import uz.glasspro.dto.OrderDTO;
 import uz.glasspro.dto.UserDTO;
 import uz.glasspro.enums.RoleEnum;
+import uz.glasspro.enums.UserCurrentStatus;
 import uz.glasspro.util.ReplyKeyboardUtil;
 import uz.glasspro.util.ReplyKeyboardConstants;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -37,6 +37,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private final Dotenv dotenv = Dotenv.configure().filename(".env").load();
 
+    private OrderDTO orderDTO;
     @Autowired
     private UserController userController;
 
@@ -60,35 +61,46 @@ public class TelegramBot extends TelegramLongPollingBot {
             SendMessage message = new SendMessage();
             message.setChatId(chatId);
             message.enableHtml(true);
+            if(ComponentContainer.USER_STATUS.containsValue(UserCurrentStatus.ENTER_PRODUCT_AMOUNT)){
+                orderDTO.setName(messageText);
+                message.setText("Количество:");
+                sendContent(message);
+                ComponentContainer.USER_STATUS.put(chatId, UserCurrentStatus.ENTER_PRODUCT_WIDTH);
+            }else if(ComponentContainer.USER_STATUS.containsValue(UserCurrentStatus.ENTER_PRODUCT_WIDTH)){
+                orderDTO.setAmount(Integer.getInteger(messageText));
+                message.setText("Ширина:");
+                sendContent(message);
+            }
 
             if(update.getMessage().hasText()){
-                SendContact sendContact = new SendContact();
-                sendContact.setChatId(chatId);
                 Chat chat = update.getMessage().getChat();
-                switch (messageText){
-                    case "/start":
-                        startCommandReceived(chat.getFirstName(), chat.getId(), message);
-                        break;
-                    case ReplyKeyboardConstants.DELETE_USER:
-                        removeUserPage(message, messageText);
-                        break;
-                    case ReplyKeyboardConstants.ABOUT_US:
-                        aboutUsPage(message, chatId);
-                        break;
-                    case ReplyKeyboardConstants.SETTINGS:
-                        settingsPage(message, chatId);
-                        break;
-                    case ReplyKeyboardConstants.ORDER:
-                        makeOrder(message, chatId);
-                        break;
-                    case ReplyKeyboardConstants.ORDER_HISTORY:
-                        orderHistory(message, chat.getId());
-                        break;
-                    default:
-                        message.setText("Cannot process it now");
-                        sendContent(message);
+
+                    switch (messageText) {
+                        case "/start":
+                            ComponentContainer.USER_STATUS.put(chatId, UserCurrentStatus.START_CHAT);
+                            startCommandReceived(chat.getFirstName(), chat.getId(), message);
+                            break;
+                        case ReplyKeyboardConstants.DELETE_USER:
+                            removeUserPage(message, messageText);
+                            break;
+                        case ReplyKeyboardConstants.ABOUT_US:
+                            aboutUsPage(message, chatId);
+                            break;
+                        case ReplyKeyboardConstants.SETTINGS:
+                            settingsPage(message, chatId);
+                            break;
+                        case ReplyKeyboardConstants.ORDER:
+                            ComponentContainer.USER_STATUS.put(chatId, UserCurrentStatus.ENTER_PRODUCT_NAME);
+                            orderDTO = new OrderDTO();
+                            message.setText("Название продукта:");
+                            sendContent(message);
+                            ComponentContainer.USER_STATUS.put(chatId, UserCurrentStatus.ENTER_PRODUCT_AMOUNT);
+                            break;
+                        case ReplyKeyboardConstants.ORDER_HISTORY:
+                            orderHistory(message, chat.getId());
+                            break;
+                    }
                 }
-            }
             if(update.getMessage().hasContact()){
                 UserDTO currentUser = new UserDTO();
                 Contact contact = update.getMessage().getContact();
@@ -112,6 +124,18 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
+    private void orderProduct(long chatId, String messageText, SendMessage message) {
+        if(ComponentContainer.USER_STATUS.containsValue(UserCurrentStatus.ENTER_PRODUCT_NAME)){
+            message.setText("Afa");
+            sendContent(message);
+            ComponentContainer.USER_STATUS.put(chatId, UserCurrentStatus.ENTER_PRODUCT_AMOUNT);
+            System.out.println(ComponentContainer.USER_STATUS.containsValue(UserCurrentStatus.ENTER_PRODUCT_AMOUNT));
+        }else if(ComponentContainer.USER_STATUS.containsValue(UserCurrentStatus.ENTER_PRODUCT_AMOUNT)){
+            message.setText("ASfaf");
+            sendContent(message);
+        }
+    }
+
     private void orderHistory(SendMessage message, long userId) {
         message.setText("История заказов");
         List<OrderDTO> orderDTOS = orderController.getUserOrderList(userId).getBody();
@@ -130,11 +154,6 @@ public class TelegramBot extends TelegramLongPollingBot {
             message.setText(orderList.toString());
             sendContent(message);
         }
-    }
-
-    private void makeOrder(SendMessage message, long chatId) {
-        message.setText("Заказ");
-        sendContent(message);
     }
 
     private void settingsPage(SendMessage message, long chatId) {
